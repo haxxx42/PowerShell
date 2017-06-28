@@ -1,5 +1,5 @@
 ﻿#---------Yotam Nordman---------#
-#region Basic Stuff
+#region Really Basic Stuff
 #region Get-Command
 #  Get-Command <SomeCommand> -Syntax
 # Will get the commands syntax this way:
@@ -51,7 +51,7 @@
 # Current object in the iteration or operation, like this. in .NET
 #endregion
 #endregion Basic Stuff
-#region Usefull Stuff
+#region Basic Usefull Stuff
 #region Execution Policy , Set-StrictMode
 # This is disabled by default and need to enable in order to run a full script from file !
 
@@ -113,9 +113,41 @@ Set-StrictMode -Version 1
 #region New-IseSnippet , CTRL + J
 # UseFull functions that can be pasted with CTRL + J
 #endregion
+#region Out-GridView -PassThru
+# EXAMPLE:
+# $s = dir C:\PowerShell| Out-GridView -PassThru   ->   Lets you pop out a windows and choose an object into the variable
+#endregion
 #endregion UserFull Stuff
-
-
+#region More Advance Stuff
+#region $ConfimPreference
+# $ConfirmPreference = 'Low'   ->   Makes it so low and above impact commands only will get a prompt for user confirmation
+# Default is 'Medium'
+#endregion
+#region New-EventLog
+# New-EventLog -LogName 'opa' -Source 'SourceName'  ->  creates an event in the event log(event viewer)  ->  Winkey + R -> eventvwr
+#endregion
+#region Advanced Functions
+# CTRL + J to paste the template
+# $DynamicParam - runs only when u TYPE the command for dynamic params in the auto completion.  ->  MUST HAVE $Begin, $Process or $End !!!!!!!!!!!!!
+# $End  ->  Runs at the end of the function
+# $Begin  -> Runs at the very start of the function
+# $Process -> Actuall logic of the function runs after the begin
+#endregion
+#region $?
+# Gets True or False Whether the last command ran was successful
+#endregion
+#region Debug with Trace-Command
+# EXAMPLE:
+# Trace-Command -Name metadata,parameterbinding,cmdlet -Expression {Get-Service BITS} -PSHost
+#endregion
+#region &{}
+# $s = & {<Code>}  ->  Runs the code but output is redirectred to the variable instead of screen
+#endregion
+#region Connection Testing
+# Test-Connection      ->  Uses Ping
+# Test-NetConnection   ->  Is like Telnet to check a port
+#endregion
+#endregion
 
 
 
