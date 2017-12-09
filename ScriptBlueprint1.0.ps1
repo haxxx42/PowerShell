@@ -174,6 +174,7 @@ Set-StrictMode -Version 1
 # Doesn't really apply to powershell
 #endregion
 #region DSC Stuff
+#region Intro
 # There are 3 types of pull servers in DSC
 # SMB
 # HTTP
@@ -187,6 +188,7 @@ Set-StrictMode -Version 1
 # Restore-DscConfiguration -> ROLLBACK (LCM Saved the previous configuration so if a rollback is necessary it will be already on the target nodes for rollback)
 # Test-DscConfiguration -Detailed -> checks whether the actual configuration on the nodes matches the desired state configuration
 # Means it runs all the test functions that are found inside the configuration
+#endregion
 #region LCM
 # Get LCM -> Local Configuration Manager from a remote machine:
 # Remember to enable the psremoting on the remote machine -> Enable-PSRemoting -SkipNetworkProfileCheck
@@ -311,6 +313,109 @@ Configuration LCMPushDisableReboot
 # The DSC-Service is a built in feature on widows server 2012 r2 and later operating systems.
 # This service is built on top of the Web-Server role.
 # Installing the windows feature does not enable the service. it must be configred and the best way to configure is DSC
+# There is an external DSC resource module named xPSDesiredStateConfiguration that contains the xDSCWebService resource. It contains all of the appropriate settings to configure the pull server.
+#region Configuration for a pull server example:
+# Install-Module -Name xPSDesiredStateConfiguration -Force
+#configuration Sample_xDscWebServiceRegistration
+#{
+#    param 
+#    (
+#        [string[]]$NodeName = 'localhost',
+#
+#        [ValidateNotNullOrEmpty()]
+#        [string] $certificateThumbPrint,
+#
+#        [Parameter(HelpMessage='This should be a string with enough entropy (randomness) to protect the registration of clients to the pull server.  We will use new GUID by default.')]
+#        [ValidateNotNullOrEmpty()]
+#        [string] $RegistrationKey   # A guid that clients use to initiate conversation with pull server
+#    )
+#
+#    Import-DSCResource -ModuleName xPSDesiredStateConfiguration
+#
+#    Node $NodeName
+#    {
+#        WindowsFeature DSCServiceFeature
+#        {
+#            Ensure = "Present"
+#            Name   = "DSC-Service"            
+#        }
+#
+#        xDscWebService PSDSCPullServer
+#        {
+#            UseSecurityBestPractices= $false
+#            # Beware of this flag i have no idea what it does
+#            Ensure                  = "Present"
+#            EndpointName            = "PSDSCPullServer"
+#            Port                    = 8080
+#            PhysicalPath            = "$env:SystemDrive\inetpub\PSDSCPullServer"
+#            CertificateThumbPrint   = $certificateThumbPrint
+#            ModulePath              = "$env:PROGRAMFILES\WindowsPowerShell\DscService\Modules"
+#            ConfigurationPath       = "$env:PROGRAMFILES\WindowsPowerShell\DscService\Configuration"            
+#            State                   = "Started"
+#            DependsOn               = "[WindowsFeature]DSCServiceFeature" 
+#            RegistrationKeyPath     = "$env:PROGRAMFILES\WindowsPowerShell\DscService"   
+#            AcceptSelfSignedCertificates = $true
+#            Enable32BitAppOnWin64   = $false
+#        }
+#
+#        File RegistrationKeyFile
+#        {
+#            Ensure          = 'Present'
+#            Type            = 'File'
+#            DestinationPath = "$env:ProgramFiles\WindowsPowerShell\DscService\RegistrationKeys.txt"
+#            Contents        = $RegistrationKey
+#        }
+#    }
+#}
+#$thumbprint = (New-SelfSignedCertificate -Subject "TestPullServer").Thumbprint
+# Remember if you do it for real to not use a selfsign cert
+# The New-SelfSignedCertificate must have a subject and defaultly goes into the LocalMachine\MY (Personal Store)
+#$registrationkey = [guid]::NewGuid()
+#Sample_xDscWebServiceRegistration -RegistrationKey $registrationkey -certificateThumbPrint $thumbprint
+#endregion
+#region Configuration for a pull cilent example:
+#[DSCLocalConfigurationManager()]
+#configuration Sample_RegisterWithLessSecurePullServer
+#{
+#    param
+#    (
+#        [ValidateNotNullOrEmpty()]
+#        [string] $NodeName,
+#
+#        [ValidateNotNullOrEmpty()]
+#        [string] $RegistrationKey, #same as the one used to setup pull server in previous configuration
+#
+#        [ValidateNotNullOrEmpty()]
+#        [string] $ServerName = 'PULL' #node name of the pull server, same as $NodeName used in previous configuration
+#    )
+#
+#    Node $NodeName
+#    {
+#        Settings
+#        {
+#            RefreshMode        = 'Pull'
+#        }
+#
+#        ConfigurationRepositoryWeb DSC-PullSrv
+#        {
+#            ServerURL          = "https://$ServerName`:8080/PSDSCPullServer.svc" # notice it is https
+#            RegistrationKey    = $RegistrationKey
+#            ConfigurationNames = @('ClientConfig')
+#        }   
+#
+#        ReportServerWeb DSC-PullSrv
+#        {
+#            ServerURL       = "https://$ServerName`:8080/PSDSCPullServer.svc" # notice it is https
+#            RegistrationKey = $RegistrationKey
+#        }
+#    }
+#}
+#Sample_RegisterWithLessSecurePullServer -RegistrationKey "7e6d2855-b5bb-46c6-a023-254443b7cfbd" -NodeName M1
+#Set-DscLocalConfigurationManager -Path 'C:\Users\administrator\Desktop\Sample_RegisterWithLessSecurePullServer\' -ComputerName 'M1'
+# Sample use (please change values of parameters according to your scenario):
+# Sample_MetaConfigurationToRegisterWithLessSecurePullServer -RegistrationKey $registrationkey
+# This will register the client and configure the local lcm to the correct pull server with a configuration named ClientConfig
+#endregion
 #endregion
 #endregion
 #region Usefull scripts of other people
@@ -1064,3 +1169,10 @@ function Out-Minidump
 #TODO Write how to secure string username and password
 Get-DscLocalConfigurationManager -CimSession 'localhost'
 Get-WindowsFeature -Name RSAT*
+Get-DscResource -Module xPSDesiredStateConfiguration
+Set-Location (Get-Module -Name xPSDesiredStateConfiguration -List).ModuleBase
+dir
+cd .\Examples
+dir
+psEdit .\Sample_xDscWebServiceRegistration.ps1
+Save-Module -Name xPSDesiredStateConfiguration -Force -Path "C:\Users\Yotam\Desktop\opa.ps1"
