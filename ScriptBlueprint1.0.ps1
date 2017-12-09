@@ -307,6 +307,11 @@ Configuration LCMPushDisableReboot
 # Remember that a configuration runs asyncronicly(all kinds of jobs run in paralel) which means if a job depends on another job it can be messed up because the other job runs after it by chance
 # so to stage the deployment of a configuration use dependencies Example in DSC First Tests in the file
 #endregion
+#region PULL Configuration
+# The DSC-Service is a built in feature on widows server 2012 r2 and later operating systems.
+# This service is built on top of the Web-Server role.
+# Installing the windows feature does not enable the service. it must be configred and the best way to configure is DSC
+#endregion
 #endregion
 #region Usefull scripts of other people
 #region Facebook Login
