@@ -372,6 +372,7 @@ Configuration LCMPushDisableReboot
 # The New-SelfSignedCertificate must have a subject and defaultly goes into the LocalMachine\MY (Personal Store)
 #$registrationkey = [guid]::NewGuid()
 #Sample_xDscWebServiceRegistration -RegistrationKey $registrationkey -certificateThumbPrint $thumbprint
+#Start-DscConfiguration -ComputerName 'localhost' -Path 'C:\Users\administrator\Desktop\Sample_xDscWebServiceRegistration'
 #endregion
 #region Configuration for a pull cilent example:
 #[DSCLocalConfigurationManager()]
@@ -1164,15 +1165,9 @@ function Out-Minidump
 #    return $table
 #}
 
-# manually parsed the json to get me the properties into custon objects in the hashtable of custom objects each represent a cryprocurrency key is the id of the coin value is the custom object
+# manually parsed the json to get me the properties into custom objects in the hash table of custom objects each represent a crypro currency key is the id of the coin value is the custom object
+#endregion
+#region Im Reading About ATA and Domain environment attacks
+
 #endregion
 #TODO Write how to secure string username and password
-Get-DscLocalConfigurationManager -CimSession 'localhost'
-Get-WindowsFeature -Name RSAT*
-Get-DscResource -Module xPSDesiredStateConfiguration
-Set-Location (Get-Module -Name xPSDesiredStateConfiguration -List).ModuleBase
-dir
-cd .\Examples
-dir
-psEdit .\Sample_xDscWebServiceRegistration.ps1
-Save-Module -Name xPSDesiredStateConfiguration -Force -Path "C:\Users\Yotam\Desktop\opa.ps1"
