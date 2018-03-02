@@ -1180,12 +1180,31 @@ function Out-Minidump
 # 2.nltest.exe /domain_trusts
 # 3.can also use dsa.msc query a custom search for trusted domain objects where the value name is present
 # Better techniches:
-# Partition data:
+# Method 1:Partition data:
 # Every DC contains the configuration partition, this partition stores configuration objects for the entire forest(the same in the whole forest)
 # The configuration partition includes the definition of the Domains(AD partitions) in cn=partitions,cn=configuration,dc=forestRootDomain
 # This gains the info of the domain list in the forest
 # Can also use adsi edit to connect to configuration partition and browse to partitions and then configuration.
 # Ive checked with a no privilages user and it can do this
+# Method 2: SID lookup
+# CN=ForeignSecurityPrincipals - This is a container that holds objects of the class foreignSecurityPrincipal.
+# These objects represent security principals from trusted domains external to the forest, and allow foregin security principals to become members of groups within the domain
+# SID-History attribute - an attribute that stores the History of the object moving from one domain to another.
+# When an object moves from one domain to another the SID must change, therefore there is an attribute that keeps the history of the old seeds.
+# If the attribute is empty the object was never moved out of the domain.
+# The Tokens created to a user in another domain that has SIDHistory represent both the new and old seeds therefore can access resources in the old domain(with his old SID) and resources in the new domain(with his new SID)
+# This method has been created for situations that there is one old domain that is being re-created to a new one but they co-exist in the proccess and new users in the new domain need access to resources still remaining in the old domain
+# If you remove the last part of the SID of a foreign user you get the SID of a Foreign Domain
+# Then in order to ensure this domain exists you so an SID Translation.
+# SIDs are translatble to users and the other way around this way:
+# $objUser = New-Object System.Security.Principal.NTAccount("yotam","amish") # First comes the domain name then the user logon name for AD, For local accounts provide just the name of the account
+# $strSID = $objUser.Translate([System.Security.Principal.SecurityIdentifier])
+# $strSID.Value
+# $objSID = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-21-1604102931-1806437862-1415400612-1104")
+# $objUser = $objSID.Translate( [System.Security.Principal.NTAccount])
+# $objUser.Value
+#
+
 
 #endregion
 #TODO Write how to secure string username and password
