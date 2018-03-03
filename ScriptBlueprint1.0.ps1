@@ -1203,11 +1203,17 @@ function Out-Minidump
 # $objSID = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-21-1604102931-1806437862-1415400612-1104")
 # $objUser = $objSID.Translate( [System.Security.Principal.NTAccount])
 # $objUser.Value
-#
-
-
+# How SIDs work:
+# S-1-5-21-1604102931-1806437862-1415400612-1104
+# (1) revision level                    - Indicates the version of the SID structure that is used in a particular SID. The structure used in all SIDs that are created by a Windows Server 2003 operating system and earlier versions is revision level 1.
+# (5) An identifier authority value     - Identifies the highest level of authority that can issue SIDs for a particular type of security principal.
+# (21-1604102931-1806437862-1415400612) - Domain identifier
+# (1104)                                - Relative identifier
+# Method 3: Domain Locator
+# nltest /Server:DC1 /DsGetDC:amish.tamesh
+# nltest /Server:DC2 /DsGetDC:yotam.nordman
+# This works both ways and gets me a DC from the domain that i asked for by asking a dc in my domain, also gets me the forest name.
 #endregion
-#TODO Write how to secure string username and password
 #region My Test environmet
 #Setup:
 # Create 4 VMs - DC1 - winserver16 - DC2 -winserver16 - C1 - win10 1709 - C2 - win10 1709
@@ -1321,3 +1327,4 @@ function Out-Minidump
 # that exists both in NTDS.DIT and localy on the host. This is used to encrypt the server part of the TGS. Then the ticket is presented to target host
 # and that host determines if access is permited.
 #endregion
+#TODO Write how to secure string username and password
