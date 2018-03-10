@@ -1252,6 +1252,23 @@ function Out-Minidump
 # and that host determines if access is permited.
 #endregion
 #region Im Reading About ATA and Active Directory Attacks
+#region ATA - Advances Threat Analytics
+# How does ATA work - It uses a network parsing engine to capture and parse network traffic of multiple protocols(for example Kerberos,DNS,RPC,NTLM,etc...)
+# To do this the ata does Port mirroring from Domain Controllers and DNS servers to the ATA Gateway
+# Port mirroring is used on a network switch to send a copy of network packets seen on one switch port (or an entire VLAN) to a network monitoring connection on another switch port
+# and/or Deploying an ATA Lightweight Gateway (LGW) directly on Domain Controllers
+# ATA could also get info from logs and events on the network.
+# This is in order to learn the behavior of users and other entities in the organization.
+# ATA can take logs from:
+# SIEM Integration
+# Windows Event Forwarding(WEF)
+# Directly from the Windows Event Collector (for the Lightweight Gateway)
+# What does ATA do?
+# ATA technology detects multiple suspicious activities, focusing on several phases of the cyber-attack kill chain including:
+# Reconnaissance, during which attackers gather information on how the environment is built, what the different assets are, and which entities exist. They generally building their plan for the next phases of the attack.
+#
+#
+#endregion
 #region Kerberoasting without mimikatz:
 # We generally don’t care about host-based SPNs.
 # As a computer’s machine account password is randomized by default and rotates every 30 days.
@@ -2194,6 +2211,33 @@ function Out-Minidump
 #     }
 # }
 #endregion
+#endregion
+#region AD Permissions: Exploiting Weak Permissions
+# Simple attack method is to find groups that have the managed by feature enabled(See that in properties of group)
+# This means that the manager can edit the permissions of the group.
+# This is kind of negletable but if you have a user that can manage an important group it could be nice.
+# Also considering scanning ACLs of Objects in the directory and complexly filtering them is worth looking at.
+# SID of 500 is the default admin account
+# SID of 512 is domain admins
+# SID of 1000 is one of the first sids in the first user in the domain (Non default one) (I tested in AD16)
+# SID of 1001 is the first domain controller in the domain                               (I tested in AD16)
+# BloodHound with AD:
+# https://github.com/BloodHoundAD/BloodHound Open source sick stuff
+# Scans for these vulnerabilities ACEs(Access control entry) in an ACL(Access control list) -
+# Reset Password – The ability to change the password of a user account without knowing their existing password
+# Add Members – Having the ability to add users to a particular group
+# Full Control – You can do anything you want to a user or group
+# Write Owner / Write DACL – The right to change permissions and ownership over an object
+# Write – The ability to write object attributes
+# Extended Rights – This controls various extended rights in one permission, including reset password rights
+# BloodHound is basicaly a tool of analasis of ACLs to create attack paths with one or more exploited vulnerablities.
+# UserHunter is the process of hunting for users and machines in the domains
+# In PowerView this is dont like so:
+# For Invoke-UserHunter
+# The script will first query the members of the target group (“Domain Admins” by default).
+# Then the script will query the domain for all machines using Get-NetComputers.
+# After the script will perform a Get-NetSessions and Get-NetLoggedOn against every host in the list and look for the users previously queried.
+# StealthUserHunter does the same thing but does not target the entire domain, only places that are likely to bring value data(Fileshares and DCs)
 #endregion
 #endregion
 #region DCShadow  - What I Learned
